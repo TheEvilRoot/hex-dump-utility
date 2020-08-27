@@ -1,5 +1,7 @@
 # HexDump
 
+![CMake](https://github.com/TheEvilRoot/hex-dump-utility/workflows/CMake/badge.svg)
+
 HexDump is a simple utility program written in C++ to get hexdump of text or binary file.
 
 #### Sample of output
