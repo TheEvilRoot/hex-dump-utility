@@ -18,6 +18,23 @@ Lines: 5
 Type of line separator: LF (0D)
 ```
 
+First line is indexing header. Every line contains 16 bytes and represented by 2-digit hex values.
+Every line is numirated by index of first byte of the line in file. 
+
+You can get byte's position in file by adding line number to byte's index in the line (and byte's index in the file by subtracting 1 from position value).
+
+##### Example
+
+```
+   Index 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16
+       0 68 65 6c 6c 6f 0d 68 65 6c 6c 6f 0d 68 65 6c 6c
+      16 6f 0d 68 65 6c 6c 6f 0d 68 65 6c 6c 6f 20 77 6f
+      32 72 6c|64|20 68 65 6c 6c 6f 0d 68 65 6c 6c 6f 20
+      48 77 6f 72 6c 64 20 68 65 6c 6c 6f ffffffff
+```
+
+To get index of byte `64` in the file, you need to add 32 (line number) to 3 (byte's index) - `32 + 3 = 35` - 35 is position of byte `64`, so it's index is `34`
+
 ### Usage
 
 ```bash
