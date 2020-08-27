@@ -4,3 +4,4 @@ Debug/
 *.user
 .vs/
 .DS_Store
+cmake-build
