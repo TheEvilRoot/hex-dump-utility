@@ -4,7 +4,8 @@
 
 HexDump is a simple utility program written in C++ to get hexdump of text or binary file.
 
-#### Sample of output
+Sample of output
+----------------
 
 ```
    Index 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16
@@ -35,27 +36,31 @@ You can get byte's position in file by adding line number to byte's index in the
 
 To get index of byte `64` in the file, you need to add 32 (line number) to 3 (byte's index) - `32 + 3 = 35` - 35 is position of byte `64`, so it's index is `34`
 
-### Usage
+Usage
+---------
 
 ```bash
 
-$ HexDump file.txt
+$ HexDump [-L] file.txt
 
 ```
 
-### Building
+##### -L parameter
+
+By default file dump is divided into lines 16 bytes each. If `-L` is specified, output's line will be broken by file's line separator (CR/LF/CRLF)
+
+Building
+--------
 
 I think, HexDump *is* fully crossplatform because it's implemented only with C++17 STL (such `filesystem`, `variant`, `fstream`)
 
-Visual Studio
--------------
+##### Visual Studio
 
 With Visual Studio you only need to clone or download this repo and open VS solution. 
 
 > Make sure that C++17 is enabled in configurations
 
-Other platforms
----------------
+##### Other platforms
 
 You can build HexDump on every platform that supported by CMake using CMakeLists.txt. 
 
