@@ -12,22 +12,23 @@ struct Options
 	typedef std::variant<Options, std::string> Result;
 	typedef std::optional<std::string> Error;
 
-	std::string filePath;
+	std::string file_path;
+	bool divide_by_lines = false;
 
 	[[nodiscard]]
 	Error check_options() const
 	{
-		if (filePath.empty())
+		if (file_path.empty())
 		{
 			return Error("File path is empty");
 		}
-		if (!std::filesystem::exists(filePath))
+		if (!std::filesystem::exists(file_path))
 		{
-			return Error("File " + filePath + " doesn't exists");
+			return Error("File " + file_path + " doesn't exists");
 		}
-		if (std::filesystem::is_directory(filePath))
+		if (std::filesystem::is_directory(file_path))
 		{
-			return Error(filePath + " is directory");
+			return Error(file_path + " is directory");
 		}
 		return Error();
 	}
@@ -36,7 +37,35 @@ struct Options
 	{
 		if (argc > 1)
 		{
-			return Result(Options{ std::string(argv[1]) });
+			Options opt{ "" };
+			for (int i = 1; i < argc; i++)
+			{
+				std::string arg(argv[i]);
+				if (arg.empty()) continue;
+				if (arg.front() == '-')
+				{
+					if (arg == "-L")
+					{
+						opt.divide_by_lines = true;
+					}
+					else 
+					{
+						return Result("Unknown parameter: " + arg);
+					}
+				}
+				else
+				{
+					if (opt.file_path.empty())
+					{
+						opt.file_path = arg;
+					}
+					else
+					{
+						return Result("Ambiguous arguments: file is " + opt.file_path + " or " + arg);
+					}
+				}
+			}
+			return Result(opt);
 		}
 		return Result("Usage: " + std::string(argv[0]) + " <file>");
 	}
@@ -64,6 +93,7 @@ struct LineCounter
 	LiningType type = LiningType::UNDEFINED;
 	bool has0D = false;
 	size_t state = 0;
+	bool new_line_flag = false;
 
 	void update_type(LiningType t)
 	{
@@ -82,6 +112,7 @@ struct LineCounter
 	{
 		size_t s = state;
 		state = 0;
+		new_line_flag = s != 0;
 		return s;
 	}
 
@@ -134,25 +165,40 @@ std::optional<T> extract(const std::variant<R...>& var)
 	return std::optional<T>();
 }
 
+bool should_new_line(const Options& opt, int index, const LineCounter &counter)
+{
+	if (opt.divide_by_lines)
+	{
+		return index == 0 || counter.new_line_flag;
+	}
+	return index % 16 == 0;
+}
+
 void hex_dump(const Options& opt)
 {
-	std::ifstream file(opt.filePath, std::ios::binary);
+	std::ifstream file(opt.file_path, std::ios::binary);
 	LineCounter counter;
 
 	if (!file.is_open())
 	{
-		std::cerr << "Failed to open file " << opt.filePath << "\n";
+		std::cerr << "Failed to open file " << opt.file_path << "\n";
 		return;
 	}
 
 	size_t index = 0;
-	size_t lines = 0;
+	size_t lines = 1;
 
-	std::cout << std::setw(9) << std::setfill(' ') << "Index ";
-	for (int i = 1; i <= 16; i++)
-		std::cout << std::setw(2) << std::setfill('0') << i << " ";
+	if (!opt.divide_by_lines) 
+	{
+		std::cout << std::setw(9) << std::setfill(' ') << "Index ";
+		for (int i = 1; i <= 16; i++) 
+		{
+			std::cout << std::setw(2) << std::setfill('0') << i << " ";
+		}
+	}
+
 	do {
-		if (index % 16 == 0)
+		if (should_new_line(opt, index, counter))
 		{
 			std::cout << std::endl;
 			std::cout << std::setw(8) << std::setfill(' ') << std::dec << index << " ";
