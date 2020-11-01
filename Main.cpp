@@ -14,6 +14,7 @@ struct Options
 
 	std::string file_path;
 	bool divide_by_lines = false;
+	int max_lines = -1;
 
 	[[nodiscard]]
 	Error check_options() const
@@ -47,6 +48,22 @@ struct Options
 					if (arg == "-L")
 					{
 						opt.divide_by_lines = true;
+					}
+					else if (arg == "-n")
+					{
+						if (i + 1 >= argc)
+						{
+							return Result("Expected parameter {count} after -n");
+						}
+						std::string value(argv[++i]);
+						try 
+						{
+							opt.max_lines = std::stoi(value);
+						} 
+						catch (...)
+						{
+							return Result("Expected number after -n");
+						}
 					}
 					else 
 					{
@@ -174,6 +191,11 @@ bool should_new_line(const Options& opt, int index, const LineCounter &counter)
 	return index % 16 == 0;
 }
 
+bool lines_limit_check(const Options& opt, int index, int lines)
+{
+	return opt.max_lines > 0 && (opt.divide_by_lines && opt.max_lines < lines || !opt.divide_by_lines && opt.max_lines <= index / 16);
+}
+
 void hex_dump(const Options& opt)
 {
 	std::ifstream file(opt.file_path, std::ios::binary);
@@ -204,9 +226,15 @@ void hex_dump(const Options& opt)
 			std::cout << std::setw(8) << std::setfill(' ') << std::dec << index << " ";
 		}
 		auto current = counter.handle(file.get());
-		std::cout << std::hex << std::setw(2) << std::setfill('0') << int(current) << " ";
+
+		std::cout << std::hex << std::setw(2) << std::setfill('0') << int(current & 0xff) << " ";
 		index++;
 		lines += counter.acquire_state();
+
+		if (lines_limit_check(opt, index, lines))
+		{
+			break;
+		}
 	} while (!file.eof());
 
 	std::cout << "\n" << std::endl;
