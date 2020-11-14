@@ -41,13 +41,18 @@ Usage
 
 ```bash
 
-$ HexDump [-L] file.txt
+$ HexDump [-L] [-n count] file.txt
 
 ```
 
 ##### -L parameter
 
 By default file dump is divided into lines 16 bytes each. If `-L` is specified, output's line will be broken by file's line separator (CR/LF/CRLF)
+
+
+##### -n parameter
+
+Number after `-n` parameter determine how many lines (byte octats or actual lines depending on `-L`) will be printed. 
 
 Building
 --------
